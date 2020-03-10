@@ -3,6 +3,7 @@ package userrepo
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	user "github.com/themanciraptor/Backend-photagea/internal/user/model"
 	"github.com/themanciraptor/Backend-photagea/internal/util"
@@ -46,6 +47,8 @@ func (r *Repository) Get(ctx context.Context, UserID string) (*user.Model, error
 
 	u.Created = util.IntsToTime(DateCreated)
 	u.Updated = util.IntsToTime(DateUpdated)
+
+	fmt.Println("for good")
 
 	return &u, nil
 }
