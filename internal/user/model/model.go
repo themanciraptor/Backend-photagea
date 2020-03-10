@@ -1,8 +1,13 @@
 package user
 
+import "github.com/themanciraptor/Backend-photagea/internal/util"
+
 // Model is container for user data
 type Model struct {
-	UserID string
-	Name   string
-	Email  string
+	util.BaseModel
+	UserID    int64
+	Alias     string
+	FirstName string
+	LastName  string
+	Email     string
 }

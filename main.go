@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -11,7 +12,7 @@ import (
 
 func main() {
 
-	db, err := sql.Open("mysql", "ezdev:ForkmeMuthaFukka@/photagea")
+	db, err := sql.Open("mysql", "ezdev:ForkmeMuthafukka@/photagea")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -19,8 +20,13 @@ func main() {
 
 	userRepository := userrepo.Initialize(db)
 
-	s, _ := userRepository.Get("me")
+	ctx := context.Background()
 
-	fmt.Printf("%s", s)
+	s, err := userRepository.Get(ctx, "13")
+	if err != nil {
+		log.Fatalf("Repository error: %s", err)
+	}
+
+	fmt.Println(s)
 
 }
