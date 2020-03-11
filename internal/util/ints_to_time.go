@@ -1,46 +1,47 @@
 package util
 
 import (
+	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 )
 
 // DateProcessor and associated methods provide an easy way to convert multiple dates returned from sql
 type DateProcessor struct {
-	unprocessedDates []*string
-	destinations     []interface{}
-}
-
-// RefList returns the list of references to make sql references easier
-func (d *DateProcessor) RefList() []*string {
-	return d.unprocessedDates
+	unprocessedDates []*sql.NullTime
+	destinations     []*time.Time
 }
 
 // Add another date to be processed
-func (d *DateProcessor) Add(dest *time.Time) {
+func (d *DateProcessor) Add(dest *time.Time) *sql.NullTime {
 	d.destinations = append(d.destinations, dest)
-	d.unprocessedDates = append(d.unprocessedDates, new(string))
+	d.unprocessedDates = append(d.unprocessedDates, new(sql.NullTime))
+
+	return d.unprocessedDates[len(d.unprocessedDates)-1]
 }
 
 // ProcessDates converts a list of integers into a time object
 func (d *DateProcessor) ProcessDates() error {
-	if len(d.destinations != d.unprocessedDates) {
+	if len(d.destinations) != len(d.unprocessedDates) {
 		return fmt.Errorf("Date Processor: internal error")
 	}
-	
+
 	var errors []error
-	for i, var := range d.unprocessedDates {
-		d.destinations[i], err := time.Parse("2006-01-02 15:04:05", var)
-		if err != nil {
-			errors = append(errors, err)
+	for i, date := range d.unprocessedDates {
+		if date.Valid {
+			*d.destinations[i] = date.Time
 		}
 	}
 
-	if len(errors > 0) {
-		b strings.Builder
-		b.
-	}
+	if len(errors) > 0 {
+		var b strings.Builder
+		for _, err := range errors {
+			b.WriteString(err.Error())
+		}
 
+		return fmt.Errorf(b.String())
+	}
 
 	return nil
 }

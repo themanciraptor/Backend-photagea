@@ -11,3 +11,8 @@ type Model struct {
 	LastName  string
 	Email     string
 }
+
+// ToRefList returns a list of references to make sql queries easier
+func (m *Model) ToRefList() []interface{} {
+	return []interface{}{&m.UserID, &m.Alias, &m.FirstName, &m.LastName, &m.Email, &m.Created, &m.Updated, &m.Deleted}
+}
