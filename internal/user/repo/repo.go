@@ -37,30 +37,78 @@ func (r *Repository) Get(ctx context.Context, UserID string) (*user.Model, error
 	rows := conn.QueryRowContext(ctx, "SELECT * FROM User2 WHERE `UserID`=?;", UserID)
 
 	u := user.Model{}
-	DateCreated := []uint8{}
-	DateUpdated := []uint8{}
-	err = rows.Scan(&u.UserID, &u.Alias, &u.FirstName, &u.LastName, &u.Email, &DateCreated, &DateUpdated)
+	dproc := util.DateProcessor{}
+	err = rows.Scan(util.AugmentRefList(&dproc, u.ToRefList())...)
 	if err != nil {
 		return nil, err
 	}
 
-	u.Created = util.IntsToTime(DateCreated)
-	u.Updated = util.IntsToTime(DateUpdated)
+	err = dproc.ProcessDates()
+	if err != nil {
+		return nil, err
+	}
 
 	return &u, nil
 }
 
-// Update gets a single user
+// Update attempts to update a single row in the user table
 func (r *Repository) Update(ctx context.Context, User *user.Model) error {
+	// TODO: finish figuring out how to make updates
+
+	conn, err := r.db.Conn(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	rows := conn.QueryRowContext(ctx, "UPDATE User2 SET ", User.UserID)
+
+	u := user.Model{}
+	dproc := util.DateProcessor{}
+	err = rows.Scan(util.AugmentRefList(&dproc, u.ToRefList())...)
+	if err != nil {
+		return err
+	}
+
+	err = dproc.ProcessDates()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
-// Create gets a single user
+// Create a user
 func (r *Repository) Create(ctx context.Context, User *user.Model) error {
+	conn, err := r.db.Conn(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	rows := conn.QueryRowContext(ctx, "INSERT INTO User2 (`UserID`, `Alias`, `FirstName`, `LastName`, `Email`) VALUES ( ?, ?, ?, ?, ?)", User.ToRefList()[:5]...)
+
+	err = rows.Scan()
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+
 	return nil
 }
 
-// Delete gets a single user
+// Delete a user
 func (r *Repository) Delete(ctx context.Context, UserID string) error {
+	conn, err := r.db.Conn(ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	rows := conn.QueryRowContext(ctx, "Update User2 SET DateDeleted=NOW() WHERE `UserID`=?;", UserID)
+	err = rows.Scan()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
