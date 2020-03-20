@@ -23,23 +23,35 @@ func main() {
 
 	ctx := context.Background()
 
-	s, err := userRepository.Get(ctx, "13")
+	s, err := userRepository.Get(ctx, 12)
 	if err != nil {
-		log.Fatalf("Repository error: %s", err)
+		log.Fatalf("Repository Get error: %s", err)
 	}
 
 	u := user.Model{
+		UserID:    12,
+		FirstName: "carll3",
+		LastName:  "Ben",
+		Alias:     "suckick",
+		AccountID: 12,
+	}
+
+	err = userRepository.Update(ctx, &u)
+	if err != nil {
+		log.Fatalf("Repository Update Error: %s", err)
+	}
+
+	u = user.Model{
 		UserID:    17,
 		FirstName: "carll",
 		LastName:  "Bennet",
 		Alias:     "suckmaprick",
-		Email:     "cocobean@cookie.net",
+		AccountID: 14,
 	}
 	err = userRepository.Create(ctx, &u)
 	if err != nil {
-		log.Fatalf("Repository Error: %s", err)
+		log.Fatalf("Repository Create Error: %s", err)
 	}
 
 	fmt.Println(s)
-
 }

@@ -10,7 +10,7 @@ import (
 
 // Interface is the interface for user repository interactions
 type Interface interface {
-	Get(context.Context, string) (*user.Model, error)
+	Get(context.Context, int64) (*user.Model, error)
 	Update(context.Context, *user.Model) error
 	Create(context.Context, *user.Model) error
 	Delete(context.Context, string) error
@@ -27,14 +27,14 @@ func Initialize(db *sql.DB) Interface {
 }
 
 // Get gets a single user
-func (r *Repository) Get(ctx context.Context, UserID string) (*user.Model, error) {
+func (r *Repository) Get(ctx context.Context, UserID int64) (*user.Model, error) {
 	conn, err := r.db.Conn(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 
-	rows := conn.QueryRowContext(ctx, "SELECT * FROM User2 WHERE `UserID`=?;", UserID)
+	rows := conn.QueryRowContext(ctx, "SELECT * FROM User WHERE `UserID`=?;", UserID)
 
 	u := user.Model{}
 	dproc := util.DateProcessor{}
@@ -53,29 +53,15 @@ func (r *Repository) Get(ctx context.Context, UserID string) (*user.Model, error
 
 // Update attempts to update a single row in the user table
 func (r *Repository) Update(ctx context.Context, User *user.Model) error {
-	// TODO: finish figuring out how to make updates
+	qb := util.InitUpdateQueryBuilder("User").
+		Add("Alias", User.Alias).
+		Add("FirstName", User.FirstName).
+		Add("LastName", User.LastName).
+		AddFilter("UserID", User.UserID)
 
-	conn, err := r.db.Conn(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
+	_, err := qb.ExecuteQuery(ctx, r.db)
 
-	rows := conn.QueryRowContext(ctx, "UPDATE User2 SET ", User.UserID)
-
-	u := user.Model{}
-	dproc := util.DateProcessor{}
-	err = rows.Scan(util.AugmentRefList(&dproc, u.ToRefList())...)
-	if err != nil {
-		return err
-	}
-
-	err = dproc.ProcessDates()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // Create a user
@@ -86,7 +72,7 @@ func (r *Repository) Create(ctx context.Context, User *user.Model) error {
 	}
 	defer conn.Close()
 
-	rows := conn.QueryRowContext(ctx, "INSERT INTO User2 (`UserID`, `Alias`, `FirstName`, `LastName`, `Email`) VALUES ( ?, ?, ?, ?, ?)", User.ToRefList()[:5]...)
+	rows := conn.QueryRowContext(ctx, "INSERT INTO User (`UserID`, `Alias`, `FirstName`, `LastName`, `AccountID`) VALUES ( ?, ?, ?, ?, ?)", User.ToRefList()[:5]...)
 
 	err = rows.Scan()
 	if err != nil && err != sql.ErrNoRows {
@@ -104,7 +90,7 @@ func (r *Repository) Delete(ctx context.Context, UserID string) error {
 	}
 	defer conn.Close()
 
-	rows := conn.QueryRowContext(ctx, "Update User2 SET DateDeleted=NOW() WHERE `UserID`=?;", UserID)
+	rows := conn.QueryRowContext(ctx, "Update User SET DateDeleted=NOW() WHERE `UserID`=?;", UserID)
 	err = rows.Scan()
 	if err != nil {
 		return err
