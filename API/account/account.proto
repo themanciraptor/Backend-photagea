@@ -1,0 +1,25 @@
+syntax = "proto3";
+package photagea;
+
+import "google/protobuf/empty.proto";
+
+service Account {   
+	// Get all Customers with filter - A server-to-client streaming RPC.
+	rpc SignIn(SignInRequest) returns (SignInResponse) {}
+	// Create a new Customer - A simple RPC 
+	rpc CreateAccount(CreateAccountRequest) returns (google.protobuf.Empty) {}
+  }
+
+message SignInRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message SignInResponse {
+    string jwt = 1;
+}
+
+message CreateAccountRequest {
+    string email = 1;
+    string password = 2;
+}

@@ -1,57 +1,42 @@
 package main
 
 import (
-	"context"
 	"database/sql"
-	"fmt"
 	"log"
+	"net"
 
 	_ "github.com/go-sql-driver/mysql"
-	user "github.com/themanciraptor/Backend-photagea/internal/user/model"
-	userrepo "github.com/themanciraptor/Backend-photagea/internal/user/repo"
+	userapi "github.com/themanciraptor/Backend-photagea/API/user"
+	"google.golang.org/grpc"
+)
+
+const (
+	port = ":5555"
 )
 
 func main() {
-
+	// Sign in to DB
 	db, err := sql.Open("mysql", "ezdev:ForkmeMuthafukka@/photagea?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	userRepository := userrepo.Initialize(db)
-
-	ctx := context.Background()
-
-	s, err := userRepository.Get(ctx, 12)
+	// Listen on the correct port
+	lis, err := net.Listen("tcp", port)
 	if err != nil {
-		log.Fatalf("Repository Get error: %s", err)
+		log.Fatalf("failed to listen: %v", err)
 	}
 
-	u := user.Model{
-		UserID:    12,
-		FirstName: "carll3",
-		LastName:  "Ben",
-		Alias:     "suckick",
-		AccountID: 12,
-	}
+	// Setup gRPC server
+	s := grpc.NewServer()
 
-	err = userRepository.Update(ctx, &u)
+	us := userapi.UnimplementedUserServiceServer{}
+	userapi.RegisterUserServiceServer(s, &us)
+
+	// Serve RPC
+	err = s.Serve(lis)
 	if err != nil {
-		log.Fatalf("Repository Update Error: %s", err)
+		log.Fatalf("Failed to serve RPC")
 	}
-
-	u = user.Model{
-		UserID:    17,
-		FirstName: "carll",
-		LastName:  "Bennet",
-		Alias:     "suckmaprick",
-		AccountID: 14,
-	}
-	err = userRepository.Create(ctx, &u)
-	if err != nil {
-		log.Fatalf("Repository Create Error: %s", err)
-	}
-
-	fmt.Println(s)
 }

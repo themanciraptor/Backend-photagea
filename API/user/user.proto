@@ -1,0 +1,36 @@
+syntax = "proto3";
+package photagea;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = ".;userapi";
+
+service UserService {   
+	// Get User
+	rpc Get(google.protobuf.Empty) returns (GetResponse) {}
+	// Create a new User
+	rpc Create(CreateUserRequest) returns (google.protobuf.Empty) {}
+	// Update a new User
+	rpc Update(UpdateUserRequest) returns (google.protobuf.Empty) {}
+  }
+
+message User {
+	string alias      = 1;
+	string first_name = 2;
+	string last_name  = 3;
+	google.protobuf.Timestamp created 		= 4;
+	google.protobuf.Timestamp last_updated 	= 5;
+}
+
+message GetResponse {
+	User user = 1;
+}
+
+message CreateUserRequest {
+	User user = 1;
+}
+
+message UpdateUserRequest {
+	User user = 1;
+}
