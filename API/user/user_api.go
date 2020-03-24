@@ -2,9 +2,10 @@ package userapi
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
-	"github.com/themancirapter/Backend-photagea/Internal/user/userservice"
+	userservice "github.com/themanciraptor/Backend-photagea/internal/user/service"
 )
 
 // Interface for the user API
@@ -27,7 +28,17 @@ func Initialize(u userservice.Interface) Interface {
 // Get a user's details
 func (u *UserAPI) Get(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(json.Marshal(userservice.Get(12)))
+	user, err := u.userService.Get(r.Context(), 12)
+	if err != nil {
+		log.Printf("Unable to find user: %d", 12)
+	}
+
+	encodedUser, err := json.Marshal(user)
+	if err != nil {
+		log.Fatalf("Unable to serialize user: %d", 12)
+	}
+
+	w.Write(encodedUser)
 }
 
 // Create a user

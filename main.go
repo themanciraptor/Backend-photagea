@@ -6,9 +6,9 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 
-	userapi "github.com/themancirapter/Backend-photagea/API/user"
-	userrepo "github.com/themancirapter/Backend-photagea/Internal/user/repo"
-	userservice "github.com/themancirapter/Backend-photagea/Internal/user/service"
+	userapi "github.com/themanciraptor/Backend-photagea/API/user"
+	userrepo "github.com/themanciraptor/Backend-photagea/internal/user/repo"
+	userservice "github.com/themanciraptor/Backend-photagea/internal/user/service"
 )
 
 const (

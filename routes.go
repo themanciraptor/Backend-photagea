@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"Github.com/themancirapter/Backend-photagea/API/userapi"
+	userapi "github.com/themanciraptor/Backend-photagea/API/user"
 )
 
 // RegisterRoutes registers each handler with their respective path
