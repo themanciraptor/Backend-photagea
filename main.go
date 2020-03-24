@@ -30,5 +30,5 @@ func main() {
 
 	RegisterRoutes(userAPI)
 
-	http.ListenAndServe(":5577", nil)
+	http.ListenAndServe(":8001", nil)
 }
