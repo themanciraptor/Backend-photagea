@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
+	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -28,4 +29,6 @@ func main() {
 	userAPI := userapi.Initialize(userService)
 
 	RegisterRoutes(userAPI)
+
+	http.ListenAndServe(":5577", nil)
 }
