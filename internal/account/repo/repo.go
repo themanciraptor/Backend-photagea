@@ -1,5 +1,7 @@
 package accountrepo
 
+/* TODO: Some of this functionality can be abstracted out */
+
 import (
 	"context"
 	"database/sql"
