@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	account "github.com/themanciraptor/Backend-photagea/internal/user/model"
+	account "github.com/themanciraptor/Backend-photagea/internal/account/model"
 	"github.com/themanciraptor/Backend-photagea/internal/util"
 )
 

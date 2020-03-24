@@ -5,8 +5,6 @@ import (
 
 	account "github.com/themanciraptor/Backend-photagea/internal/account/model"
 	accountrepo "github.com/themanciraptor/Backend-photagea/internal/account/repo"
-	user "github.com/themanciraptor/Backend-photagea/internal/user/model"
-	userrepo "github.com/themanciraptor/Backend-photagea/internal/user/repo"
 )
 
 // Interface is the service interface
@@ -21,27 +19,27 @@ type Service struct {
 	repo accountrepo.Interface
 }
 
-// Initialize a new User Service
-func Initialize(r userrepo.Interface) Interface {
+// Initialize a new account Service
+func Initialize(r accountrepo.Interface) Interface {
 	return &Service{repo: r}
 }
 
-// Get a user
+// Get a account
 func (u *Service) Get(ctx context.Context, AccountID int64) (*account.Model, error) {
 	return u.repo.Get(ctx, AccountID)
 }
 
-// Create a user
+// Create a account
 func (u *Service) Create(ctx context.Context, AccountID int64, Email string) error {
-	return u.repo.Create(ctx, &user.Model{
+	return u.repo.Create(ctx, &account.Model{
 		AccountID: AccountID,
 		Email:     Email,
 	})
 }
 
-// Update a user
+// Update a account
 func (u *Service) Update(ctx context.Context, AccountID int64, Email string) error {
-	return u.repo.Update(ctx, &user.Model{
+	return u.repo.Update(ctx, &account.Model{
 		AccountID: AccountID,
 		Email:     Email,
 	})
