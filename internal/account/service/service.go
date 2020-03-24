@@ -13,7 +13,8 @@ import (
 // Interface is the service interface
 type Interface interface {
 	SignIn(ctx context.Context, email string, password string) (string, error)
-	Create(ctx context.Context, accountID int64, Email string, Password string) error
+	Verify(jwtstring string) (int64, error)
+	Create(ctx context.Context, Email string, Password string) error
 	Update(ctx context.Context, accountID int64, Email string, Password string) error
 }
 
@@ -33,10 +34,10 @@ func Initialize(r accountrepo.Interface) Interface {
 }
 
 // Create a account
-func (a *Service) Create(ctx context.Context, accountID int64, Email string, Password string) error {
+func (a *Service) Create(ctx context.Context, Email string, Password string) error {
 	return a.repo.Create(ctx, &account.Model{
-		AccountID: accountID,
-		Email:     Email,
+		Password: Password,
+		Email:    Email,
 	})
 }
 
@@ -59,7 +60,7 @@ func (a *Service) SignIn(ctx context.Context, email string, password string) (st
 	claims := accountClaims{
 		AccountID: acc.AccountID,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: 15000,
+			ExpiresAt: time.Now().Unix() + 1500,
 			Issuer:    "photagea.com",
 		},
 	}
