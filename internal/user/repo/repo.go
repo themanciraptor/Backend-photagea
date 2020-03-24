@@ -36,6 +36,7 @@ func (r *Repository) Get(ctx context.Context, UserID int64) (*user.Model, error)
 
 	rows := conn.QueryRowContext(ctx, "SELECT * FROM User WHERE `UserID`=?;", UserID)
 
+	// TODO: REMOVE date processor, and rely on standard sqlnullable types
 	u := user.Model{}
 	dproc := util.DateProcessor{}
 	err = rows.Scan(util.AugmentRefList(&dproc, u.ToRefList())...)
