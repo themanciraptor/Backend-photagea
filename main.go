@@ -3,15 +3,21 @@ package main
 import (
 	"database/sql"
 	"log"
-	"net"
+	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
+
 	userapi "github.com/themanciraptor/Backend-photagea/API/user"
-	"google.golang.org/grpc"
+	userrepo "github.com/themanciraptor/Backend-photagea/internal/user/repo"
+	userservice "github.com/themanciraptor/Backend-photagea/internal/user/service"
+
+	accountapi "github.com/themanciraptor/Backend-photagea/API/account"
+	accountrepo "github.com/themanciraptor/Backend-photagea/internal/account/repo"
+	accountservice "github.com/themanciraptor/Backend-photagea/internal/account/service"
 )
 
 const (
-	port = ":5555"
+	port = ":5577"
 )
 
 func main() {
@@ -22,21 +28,15 @@ func main() {
 	}
 	defer db.Close()
 
-	// Listen on the correct port
-	lis, err := net.Listen("tcp", port)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
+	accountRepo := accountrepo.Initialize(db)
+	accountService := accountservice.Initialize(accountRepo)
+	accountAPI := accountapi.Initialize(accountService)
 
-	// Setup gRPC server
-	s := grpc.NewServer()
+	userRepo := userrepo.Initialize(db)
+	userService := userservice.Initialize(userRepo)
+	userAPI := userapi.Initialize(userService, accountService)
 
-	us := userapi.UnimplementedUserServiceServer{}
-	userapi.RegisterUserServiceServer(s, &us)
+	RegisterRoutes(userAPI, accountAPI)
 
-	// Serve RPC
-	err = s.Serve(lis)
-	if err != nil {
-		log.Fatalf("Failed to serve RPC")
-	}
+	http.ListenAndServe(":8001", nil)
 }
