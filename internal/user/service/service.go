@@ -10,8 +10,8 @@ import (
 // Interface is the service interface
 type Interface interface {
 	Get(context.Context, int64) (*user.Model, error)
-	Create(context.Context, int64, string, string, string) (*user.Model, error)
-	Update(context.Context, int64, string, string, string) (*user.Model, error)
+	Create(context.Context, int64, string, string, string) error
+	Update(context.Context, int64, string, string, string) error
 }
 
 // UserService implements user service interface
@@ -25,16 +25,26 @@ func Initialize(r userrepo.Interface) Interface {
 }
 
 // Get a user
-func (u *UserService) Get(ctx context.Context, UserID int64) (*user.Model, error) {
-	return u.repo.Get(ctx, UserID)
+func (u *UserService) Get(ctx context.Context, AccountID int64) (*user.Model, error) {
+	return u.repo.Get(ctx, AccountID)
 }
 
 // Create a user
-func (u *UserService) Create(ctx context.Context, UserID int64, Alias string, FirstName string, LastName string) (*user.Model, error) {
-	return nil, nil
+func (u *UserService) Create(ctx context.Context, AccountID int64, Alias string, FirstName string, LastName string) error {
+	return u.repo.Create(ctx, &user.Model{
+		AccountID: AccountID,
+		Alias:     Alias,
+		FirstName: FirstName,
+		LastName:  LastName,
+	})
 }
 
 // Update a user
-func (u *UserService) Update(ctx context.Context, UserID int64, Alias string, FirstName string, LastName string) (*user.Model, error) {
-	return nil, nil
+func (u *UserService) Update(ctx context.Context, AccountID int64, Alias string, FirstName string, LastName string) error {
+	return u.repo.Create(ctx, &user.Model{
+		AccountID: AccountID,
+		Alias:     Alias,
+		FirstName: FirstName,
+		LastName:  LastName,
+	})
 }

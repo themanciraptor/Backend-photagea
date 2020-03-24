@@ -20,6 +20,15 @@ type UserAPI struct {
 	userService userservice.Interface
 }
 
+// userDataContainer is a temporary container to make json deserialization easier
+type userDataContainer struct {
+	Alias     string `json:"Alias"`
+	FirstName string `json:"FirstName"`
+	LastName  string `json:"LastName"`
+}
+
+const accountID = 12
+
 // Initialize a new instance of the user API
 func Initialize(u userservice.Interface) Interface {
 	return &UserAPI{userService: u}
@@ -27,23 +36,43 @@ func Initialize(u userservice.Interface) Interface {
 
 // Get a user's details
 func (u *UserAPI) Get(w http.ResponseWriter, r *http.Request) {
+	e := json.NewEncoder(w)
+	user, err := u.userService.Get(r.Context(), accountID)
+	if err != nil {
+		log.Printf("Unable to find user: %d", accountID)
+	}
+
+	err = e.Encode(user)
+	if err != nil {
+		log.Fatalf("Unable to serialize user: %d", accountID)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	user, err := u.userService.Get(r.Context(), 12)
-	if err != nil {
-		log.Printf("Unable to find user: %d", 12)
-	}
-
-	encodedUser, err := json.Marshal(user)
-	if err != nil {
-		log.Fatalf("Unable to serialize user: %d", 12)
-	}
-
-	w.Write(encodedUser)
 }
 
 // Create a user
 func (u *UserAPI) Create(w http.ResponseWriter, r *http.Request) {
 
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+
+	c := userDataContainer{}
+
+	err := d.Decode(&c)
+	if err != nil {
+		log.Printf("Unable to read request body: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = u.userService.Create(r.Context(), accountID, c.Alias, c.FirstName, c.LastName)
+	if err != nil {
+		log.Printf("Unable to create user for account %d: %s", accountID, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 // Update a user
