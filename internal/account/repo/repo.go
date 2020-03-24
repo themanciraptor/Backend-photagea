@@ -5,17 +5,19 @@ package accountrepo
 import (
 	"context"
 	"database/sql"
+	"log"
 
 	account "github.com/themanciraptor/Backend-photagea/internal/account/model"
 	"github.com/themanciraptor/Backend-photagea/internal/util"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Interface is the interface for user repository interactions
 type Interface interface {
-	Get(context.Context, int64) (*account.Model, error)
-	Update(context.Context, *account.Model) error
-	Create(context.Context, *account.Model) error
-	Delete(context.Context, string) error
+	Get(ctx context.Context, email string, password string) (*account.Model, error) // May remove this function
+	Update(ctx context.Context, a *account.Model) error
+	Create(ctx context.Context, a *account.Model) error
+	Delete(ctx context.Context, accountID string) error
 }
 
 // Repository implements the repo Interface
@@ -28,15 +30,15 @@ func Initialize(db *sql.DB) Interface {
 	return &Repository{db: db}
 }
 
-// Get gets a single user
-func (r *Repository) Get(ctx context.Context, AccountID int64) (*account.Model, error) {
+// Get gets a single account
+func (r *Repository) Get(ctx context.Context, email string, password string) (*account.Model, error) {
 	conn, err := r.db.Conn(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 
-	rows := conn.QueryRowContext(ctx, "SELECT * FROM account WHERE `AccountID`=?;", AccountID)
+	rows := conn.QueryRowContext(ctx, "SELECT * FROM account WHERE `Email`=?;", email)
 
 	// TODO: REMOVE date processor, and rely on standard sqlnullable types
 	u := account.Model{}
@@ -47,6 +49,11 @@ func (r *Repository) Get(ctx context.Context, AccountID int64) (*account.Model, 
 	}
 
 	err = dproc.ProcessDates()
+	if err != nil {
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	if err != nil {
 		return nil, err
 	}
@@ -66,14 +73,19 @@ func (r *Repository) Update(ctx context.Context, account *account.Model) error {
 }
 
 // Create a account
-func (r *Repository) Create(ctx context.Context, account *account.Model) error {
+func (r *Repository) Create(ctx context.Context, a *account.Model) error {
 	conn, err := r.db.Conn(ctx)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	rows := conn.QueryRowContext(ctx, "INSERT INTO account (`Email`) VALUES ( ? )", &account.Email)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(a.Password), 12)
+	if err != nil {
+		log.Printf("Unable to hash password: %s", err)
+	}
+
+	rows := conn.QueryRowContext(ctx, "INSERT INTO account (`Email`, `Password`) VALUES ( ?, ? )", &a.Email, &hashedPassword)
 
 	err = rows.Scan()
 	if err != nil && err != sql.ErrNoRows {
@@ -84,14 +96,14 @@ func (r *Repository) Create(ctx context.Context, account *account.Model) error {
 }
 
 // Delete a account
-func (r *Repository) Delete(ctx context.Context, AccountID string) error {
+func (r *Repository) Delete(ctx context.Context, accountID string) error {
 	conn, err := r.db.Conn(ctx)
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	rows := conn.QueryRowContext(ctx, "Update account SET DateDeleted=NOW() WHERE `AccountID`=?;", AccountID)
+	rows := conn.QueryRowContext(ctx, "Update account SET DateDeleted=NOW() WHERE `AccountID`=?;", accountID)
 	err = rows.Scan()
 	if err != nil {
 		return err
