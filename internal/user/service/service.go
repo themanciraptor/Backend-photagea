@@ -41,7 +41,7 @@ func (u *UserService) Create(ctx context.Context, AccountID int64, Alias string,
 
 // Update a user
 func (u *UserService) Update(ctx context.Context, AccountID int64, Alias string, FirstName string, LastName string) error {
-	return u.repo.Create(ctx, &user.Model{
+	return u.repo.Update(ctx, &user.Model{
 		AccountID: AccountID,
 		Alias:     Alias,
 		FirstName: FirstName,

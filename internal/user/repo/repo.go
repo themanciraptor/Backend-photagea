@@ -73,7 +73,7 @@ func (r *Repository) Create(ctx context.Context, User *user.Model) error {
 	}
 	defer conn.Close()
 
-	rows := conn.QueryRowContext(ctx, "INSERT INTO User (`AccountID`, `Alias`, `FirstName`, `LastName`, `AccountID`) VALUES ( ?, ?, ?, ?, ?)", User.ToRefList()[:5]...)
+	rows := conn.QueryRowContext(ctx, "INSERT INTO User (`Alias`, `FirstName`, `LastName`, `AccountID`) VALUES ( ?, ?, ?, ?)", User.ToRefList()[1:5]...)
 
 	err = rows.Scan()
 	if err != nil && err != sql.ErrNoRows {

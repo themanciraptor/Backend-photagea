@@ -10,7 +10,9 @@ import (
 func RegisterRoutes(user userapi.Interface) {
 	// routes contains the central register of all routes
 	routes := map[string]func(http.ResponseWriter, *http.Request){
-		"/user/get": user.Get,
+		"/user/get":    user.Get,
+		"/user/create": user.Create,
+		"/user/update": user.Update,
 	}
 
 	for path, route := range routes {
