@@ -3,6 +3,7 @@ package accountservice
 import (
 	"context"
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -13,7 +14,7 @@ import (
 // Interface is the service interface
 type Interface interface {
 	SignIn(ctx context.Context, email string, password string) (string, error)
-	Verify(jwtstring string) (int64, error)
+	Verify(r *http.Request) (int64, error)
 	Create(ctx context.Context, Email string, Password string) error
 	Update(ctx context.Context, accountID int64, Email string, Password string) error
 }
@@ -76,9 +77,10 @@ func (a *Service) SignIn(ctx context.Context, email string, password string) (st
 }
 
 // Verify checks that a token is valid and returns the accoundID attached to the jwt
-func (a *Service) Verify(jwtstring string) (int64, error) {
+func (a *Service) Verify(r *http.Request) (int64, error) {
+	auth := r.Header.Get("Authorization")
 	token, err := jwt.ParseWithClaims(
-		jwtstring,
+		auth,
 		&accountClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte("secureSecretText"), nil

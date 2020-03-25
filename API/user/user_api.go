@@ -38,10 +38,9 @@ func Initialize(u userservice.Interface, a accountservice.Interface) Interface {
 func (u *UserAPI) Get(w http.ResponseWriter, r *http.Request) {
 	e := json.NewEncoder(w)
 
-	auth := r.Header.Get("Authorization")
-	accountID, err := u.accountService.Verify(auth)
+	accountID, err := u.accountService.Verify(r)
 	if err != nil {
-		log.Printf("A failed attemp at signing in was made: %s", err)
+		log.Printf("Authentication failure: %s", err)
 		w.WriteHeader(http.StatusUnauthorized)
 	}
 
@@ -49,12 +48,14 @@ func (u *UserAPI) Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Unable to find user: %d", accountID)
 		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
 	err = e.Encode(user)
 	if err != nil {
 		log.Fatalf("Unable to serialize user: %d", accountID)
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -67,8 +68,7 @@ func (u *UserAPI) Create(w http.ResponseWriter, r *http.Request) {
 
 	c := userDataContainer{}
 
-	auth := r.Header.Get("Authorization")
-	accountID, err := u.accountService.Verify(auth)
+	accountID, err := u.accountService.Verify(r)
 	if err != nil {
 		log.Printf("A failed attemp at signing in was made: %s", err)
 		w.WriteHeader(http.StatusUnauthorized)
@@ -99,11 +99,11 @@ func (u *UserAPI) Update(w http.ResponseWriter, r *http.Request) {
 
 	c := userDataContainer{}
 
-	auth := r.Header.Get("Authorization")
-	accountID, err := u.accountService.Verify(auth)
+	accountID, err := u.accountService.Verify(r)
 	if err != nil {
 		log.Printf("A failed attemp at signing in was made: %s", err)
 		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	err = d.Decode(&c)

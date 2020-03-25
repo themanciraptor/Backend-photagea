@@ -5,11 +5,12 @@ import (
 
 	accountapi "github.com/themanciraptor/Backend-photagea/API/account"
 	imageapi "github.com/themanciraptor/Backend-photagea/API/image"
+	imagedataapi "github.com/themanciraptor/Backend-photagea/API/imagedata"
 	userapi "github.com/themanciraptor/Backend-photagea/API/user"
 )
 
 // RegisterRoutes registers each handler with their respective path
-func RegisterRoutes(user userapi.Interface, accounts accountapi.Interface, images imageapi.Interface) {
+func RegisterRoutes(user userapi.Interface, accounts accountapi.Interface, images imageapi.Interface, imagedata imagedataapi.Interface) {
 	// routes contains the central register of all routes
 	routes := map[string]func(http.ResponseWriter, *http.Request){
 		"/user/get":         user.Get,
@@ -19,6 +20,8 @@ func RegisterRoutes(user userapi.Interface, accounts accountapi.Interface, image
 		"/account/register": accounts.Register,
 		"/images/create":    images.Create,
 		"/images/list":      images.List,
+		"/images/upload":    imagedata.Upload,
+		"/images/Get":       imagedata.Get,
 	}
 
 	for path, route := range routes {
