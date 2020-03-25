@@ -14,6 +14,10 @@ import (
 	accountapi "github.com/themanciraptor/Backend-photagea/API/account"
 	accountrepo "github.com/themanciraptor/Backend-photagea/internal/account/repo"
 	accountservice "github.com/themanciraptor/Backend-photagea/internal/account/service"
+
+	imageapi "github.com/themanciraptor/Backend-photagea/API/image"
+	imagerepo "github.com/themanciraptor/Backend-photagea/internal/image/repo"
+	imageservice "github.com/themanciraptor/Backend-photagea/internal/image/service"
 )
 
 const (
@@ -36,7 +40,11 @@ func main() {
 	userService := userservice.Initialize(userRepo)
 	userAPI := userapi.Initialize(userService, accountService)
 
-	RegisterRoutes(userAPI, accountAPI)
+	imageRepo := imagerepo.Initialize(db)
+	imageService := imageservice.Initialize(imageRepo)
+	imageAPI := imageapi.Initialize(imageService, accountService)
+
+	RegisterRoutes(userAPI, accountAPI, imageAPI)
 
 	http.ListenAndServe(":8001", nil)
 }
