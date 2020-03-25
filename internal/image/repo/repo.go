@@ -5,6 +5,7 @@ package imagerepo
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	image "github.com/themanciraptor/Backend-photagea/internal/image/model"
 )
@@ -34,7 +35,7 @@ func (r *Repository) Create(ctx context.Context, a *image.Model) error {
 	}
 	defer conn.Close()
 
-	rows := conn.QueryRowContext(ctx, "INSERT INTO image (`URL`, `AccountID`) VALUES ( ?, ?)", a.ToRefList()[1:3]...)
+	rows := conn.QueryRowContext(ctx, "INSERT INTO image (`AccountID`, `URL`) VALUES ( ?, ?)", a.ToRefList()[1:3]...)
 
 	err = rows.Scan()
 	if err != nil && err != sql.ErrNoRows {
@@ -68,17 +69,17 @@ func (r *Repository) List(ctx context.Context, accountID int64, limit int, curso
 		return nil, 0, err
 	}
 
-	images := make([]*image.Model, limit)
-	// temp := image.Model{}
-
-	err = rows.Scan(images[0].ToRefList()...)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	for i := 1; rows.Next(); i++ {
+	images := make([]*image.Model, 0, limit)
+	for i := 0; rows.Next(); i++ {
+		fmt.Println("Getting a row")
+		images = append(images, new(image.Model))
 		rows.Scan(images[i].ToRefList()...)
+		if err != nil {
+			return nil, 0, err
+		}
 	}
+
+	fmt.Println("images: ", images[0].URL, images[0].AccountID)
 
 	return images, cursor + int64(len(images)), nil
 }
