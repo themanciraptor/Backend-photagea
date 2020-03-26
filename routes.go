@@ -22,5 +22,4 @@ func RegisterRoutes(r *mux.Router, user userapi.Interface, accounts accountapi.I
 	r.HandleFunc("/images/list", images.List).Methods(http.MethodGet, http.MethodPost)
 	r.HandleFunc("/images/upload", imagedata.Upload).Methods(http.MethodPut)
 	r.HandleFunc("/images/get", imagedata.Get).Methods(http.MethodGet, http.MethodPost)
-	r.HandleFunc("/imagedata/get", imagedata.Get).Methods(http.MethodGet, http.MethodPost)
 }
