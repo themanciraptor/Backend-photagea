@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 
 	userapi "github.com/themanciraptor/Backend-photagea/API/user"
 	userrepo "github.com/themanciraptor/Backend-photagea/internal/user/repo"
@@ -18,19 +20,27 @@ import (
 	imageapi "github.com/themanciraptor/Backend-photagea/API/image"
 	imagerepo "github.com/themanciraptor/Backend-photagea/internal/image/repo"
 	imageservice "github.com/themanciraptor/Backend-photagea/internal/image/service"
-)
 
-const (
-	port = ":5577"
+	imagedataapi "github.com/themanciraptor/Backend-photagea/API/imagedata"
+	imagedatarepo "github.com/themanciraptor/Backend-photagea/internal/imagedata/repo"
+	imagedataservice "github.com/themanciraptor/Backend-photagea/internal/imagedata/service"
 )
 
 func main() {
 	// Sign in to DB
-	db, err := sql.Open("mysql", "dev:developmentpassword@/photagea?parseTime=true")
+	db, err := sql.Open("mysql", "ezdev:ForkmeMuthafukka@/photagea?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
+
+	r := mux.NewRouter()
+	srv := &http.Server{
+		Handler:      r,
+		Addr:         "127.0.0.1:8001",
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
 
 	accountRepo := accountrepo.Initialize(db)
 	accountService := accountservice.Initialize(accountRepo)
@@ -44,7 +54,12 @@ func main() {
 	imageService := imageservice.Initialize(imageRepo)
 	imageAPI := imageapi.Initialize(imageService, accountService)
 
-	RegisterRoutes(userAPI, accountAPI, imageAPI)
+	imageDataRepo := imagedatarepo.Initialize(db)
+	imageDataService := imagedataservice.Initialize(imageDataRepo)
+	imageDataAPI := imagedataapi.Initialize(imageDataService, accountService)
 
-	http.ListenAndServe(":8001", nil)
+	RegisterRoutes(r, userAPI, accountAPI, imageAPI, imageDataAPI)
+
+	http.Handle("/", r)
+	log.Fatal(srv.ListenAndServe())
 }

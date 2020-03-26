@@ -33,3 +33,10 @@ From mysql workbench:
 }`
 
 - The authentication header on all requests should be set to "Bearer \<authentication token>"
+
+## Project TODO's
+
+Obviously, this project isn't production ready yet. I will add steps here as I think/learn of them:
+- Enable HTTPS using openssl
+- Passwords and secrets currently included as plain-text in the code. This should be stored as secrets and inserted at build time according to whichever environment.
+- Endpoints should have documentation for how they are used. Usage could be returned on 400's.

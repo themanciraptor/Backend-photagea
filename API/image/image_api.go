@@ -39,10 +39,9 @@ func (i *ImageAPI) Create(w http.ResponseWriter, r *http.Request) {
 
 	c := imageDataContainer{}
 
-	auth := r.Header.Get("Authorization")
-	accountID, err := i.accountService.Verify(auth)
+	accountID, err := i.accountService.Verify(r)
 	if err != nil {
-		log.Printf("invalid token: %s", err)
+		log.Printf("Authentication failure: %s", err)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -83,11 +82,11 @@ func (i *ImageAPI) List(w http.ResponseWriter, r *http.Request) {
 
 	c := listWindow{}
 
-	auth := r.Header.Get("Authorization")
-	accountID, err := i.accountService.Verify(auth)
+	accountID, err := i.accountService.Verify(r)
 	if err != nil {
 		log.Printf("Authentication failed: %s", err)
 		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	err = d.Decode(&c)

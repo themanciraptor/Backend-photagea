@@ -1,5 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `photagea` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `photagea`;
 -- MySQL dump 10.13  Distrib 8.0.19, for Win64 (x86_64)
 --
 -- Host: localhost    Database: photagea
@@ -62,7 +60,7 @@ CREATE TABLE `image` (
   PRIMARY KEY (`ImageID`),
   KEY `AccountID` (`AccountID`),
   CONSTRAINT `image_ibfk_1` FOREIGN KEY (`AccountID`) REFERENCES `account` (`AccountID`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -71,7 +69,7 @@ CREATE TABLE `image` (
 
 LOCK TABLES `image` WRITE;
 /*!40000 ALTER TABLE `image` DISABLE KEYS */;
-INSERT INTO `image` VALUES (1,16,'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Via_appia.jpg/1200px-Via_appia.jpg','2020-03-25 15:34:24',NULL,NULL);
+INSERT INTO `image` VALUES (1,16,'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Via_appia.jpg/1200px-Via_appia.jpg','2020-03-25 15:34:24',NULL,NULL),(2,16,'https://www.telegraph.co.uk/content/dam/Travel/Destinations/Europe/France/Nice/nice-promenade-attractions-xlarge.jpg','2020-03-26 16:14:59',NULL,NULL);
 /*!40000 ALTER TABLE `image` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -146,4 +144,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-03-25 18:51:15
+-- Dump completed on 2020-03-26 17:27:40
