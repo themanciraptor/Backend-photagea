@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -78,9 +79,9 @@ func (a *Service) SignIn(ctx context.Context, email string, password string) (st
 
 // Verify checks that a token is valid and returns the accoundID attached to the jwt
 func (a *Service) Verify(r *http.Request) (int64, error) {
-	auth := r.Header.Get("Authorization")
+	j := strings.SplitAfter(r.Header.Get("Authentication"), "Bearer ")
 	token, err := jwt.ParseWithClaims(
-		auth,
+		j[0],
 		&accountClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte("secureSecretText"), nil
