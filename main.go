@@ -4,8 +4,10 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 
 	userapi "github.com/themanciraptor/Backend-photagea/API/user"
 	userrepo "github.com/themanciraptor/Backend-photagea/internal/user/repo"
@@ -30,11 +32,20 @@ const (
 
 func main() {
 	// Sign in to DB
-	db, err := sql.Open("mysql", "dev:developmentpassword@/photagea?parseTime=true")
+	db, err := sql.Open("mysql", "ezdev:developmentpassword@/photagea?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
+
+	r := mux.NewRouter()
+	srv := &http.Server{
+		Handler: r,
+		Addr:    "127.0.0.1:8001",
+		// Good practice: enforce timeouts for servers you create!
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
 
 	accountRepo := accountrepo.Initialize(db)
 	accountService := accountservice.Initialize(accountRepo)
@@ -52,7 +63,8 @@ func main() {
 	// imageService := imageservice.Initialize(imageRepo)
 	imageDataAPI := imagedataapi.Initialize(accountService)
 
-	RegisterRoutes(userAPI, accountAPI, imageAPI, imageDataAPI)
+	RegisterRoutes(r, userAPI, accountAPI, imageAPI, imageDataAPI)
 
-	http.ListenAndServe(":8001", nil)
+	http.Handle("/", r)
+	log.Fatal(srv.ListenAndServe())
 }
