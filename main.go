@@ -26,7 +26,7 @@ const (
 
 func main() {
 	// Sign in to DB
-	db, err := sql.Open("mysql", "ezdev:ForkmeMuthafukka@/photagea?parseTime=true")
+	db, err := sql.Open("mysql", "dev:developmentpassword@/photagea?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
 	}
