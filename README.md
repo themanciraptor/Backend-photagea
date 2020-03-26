@@ -21,4 +21,17 @@ From mysql workbench:
 - Select `import from self-contained file`.
 - Open "photagea.sql" from the project root.
 
+## Running
+- From the project root on the commandline, run: 
+    
+        go run .
+
+- Obtain authentication token:
+    - Post `127.0.0.1:8001/account/signin` with the following body:
+`{
+    "Email": "dood",
+    "Password": "milk"
+}`
+
+- The authentication header on all requests should be set to "Bearer \<authentication token>"
 

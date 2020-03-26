@@ -3,6 +3,7 @@ package accountservice
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -77,8 +78,9 @@ func (a *Service) SignIn(ctx context.Context, email string, password string) (st
 
 // Verify checks that a token is valid and returns the accoundID attached to the jwt
 func (a *Service) Verify(jwtstring string) (int64, error) {
+	j := strings.SplitAfter(jwtstring, "Bearer ")
 	token, err := jwt.ParseWithClaims(
-		jwtstring,
+		j[0],
 		&accountClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte("secureSecretText"), nil
