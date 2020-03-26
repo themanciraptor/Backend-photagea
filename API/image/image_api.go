@@ -86,6 +86,7 @@ func (i *ImageAPI) List(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Authentication failed: %s", err)
 		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	err = d.Decode(&c)

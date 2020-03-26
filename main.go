@@ -22,12 +22,8 @@ import (
 	imageservice "github.com/themanciraptor/Backend-photagea/internal/image/service"
 
 	imagedataapi "github.com/themanciraptor/Backend-photagea/API/imagedata"
-	// imagedatarepo "github.com/themanciraptor/Backend-photagea/internal/imagedata/repo"
-	// imagedataservice "github.com/themanciraptor/Backend-photagea/internal/imagedata/service"
-)
-
-const (
-	port = ":5577"
+	imagedatarepo "github.com/themanciraptor/Backend-photagea/internal/imagedata/repo"
+	imagedataservice "github.com/themanciraptor/Backend-photagea/internal/imagedata/service"
 )
 
 func main() {
@@ -40,9 +36,8 @@ func main() {
 
 	r := mux.NewRouter()
 	srv := &http.Server{
-		Handler: r,
-		Addr:    "127.0.0.1:8001",
-		// Good practice: enforce timeouts for servers you create!
+		Handler:      r,
+		Addr:         "127.0.0.1:8001",
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -59,9 +54,9 @@ func main() {
 	imageService := imageservice.Initialize(imageRepo)
 	imageAPI := imageapi.Initialize(imageService, accountService)
 
-	// imageRepo := imagerepo.Initialize(db)
-	// imageService := imageservice.Initialize(imageRepo)
-	imageDataAPI := imagedataapi.Initialize(accountService)
+	imageDataRepo := imagedatarepo.Initialize(db)
+	imageDataService := imagedataservice.Initialize(imageDataRepo)
+	imageDataAPI := imagedataapi.Initialize(imageDataService, accountService)
 
 	RegisterRoutes(r, userAPI, accountAPI, imageAPI, imageDataAPI)
 

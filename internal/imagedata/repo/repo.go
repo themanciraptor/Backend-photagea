@@ -1,4 +1,4 @@
-package accountrepo
+package imagedatarepo
 
 /* TODO: Some of this functionality can be abstracted out */
 
@@ -6,7 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"os"
+	"io/ioutil"
 
 	imagedata "github.com/themanciraptor/Backend-photagea/internal/imagedata/model"
 	"github.com/themanciraptor/Backend-photagea/internal/util"
@@ -48,12 +48,9 @@ func (r *Repository) Get(ctx context.Context, accountID int64, imageDataID int64
 		return nil, err
 	}
 
-	f, err := os.Open(fmt.Sprintf(filepath, accountID, imageDataID))
-	if err != nil {
-		return nil, err
-	}
+	b, err := ioutil.ReadFile(fmt.Sprintf(filepath, accountID, imageDataID))
 
-	d.ImageData = f
+	d.ImageData = b
 
 	return &d, nil
 }
