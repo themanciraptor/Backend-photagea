@@ -79,9 +79,9 @@ func (a *Service) SignIn(ctx context.Context, email string, password string) (st
 
 // Verify checks that a token is valid and returns the accoundID attached to the jwt
 func (a *Service) Verify(r *http.Request) (int64, error) {
-	j := strings.SplitAfter(r.Header.Get("Authentication"), "Bearer ")
+	j := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 	token, err := jwt.ParseWithClaims(
-		j[0],
+		j,
 		&accountClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte("secureSecretText"), nil

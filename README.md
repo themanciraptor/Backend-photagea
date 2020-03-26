@@ -33,3 +33,8 @@ From mysql workbench:
 }`
 
 - The authentication header on all requests should be set to "Bearer \<authentication token>"
+
+## Project TODO's
+
+Obviously, this project isn't production ready yet. I will add steps here as I think/learn of them:
+- Enable HTTPS using openssl

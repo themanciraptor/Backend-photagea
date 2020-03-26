@@ -32,18 +32,12 @@ func Initialize(db *sql.DB) Interface {
 
 // Get gets a single account
 func (r *Repository) Get(ctx context.Context, email string, password string) (*account.Model, error) {
-	conn, err := r.db.Conn(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	rows := conn.QueryRowContext(ctx, "SELECT * FROM account WHERE `Email`=?;", email)
+	row := r.db.QueryRowContext(ctx, "SELECT * FROM account WHERE `Email`=?;", email)
 
 	// TODO: REMOVE date processor, and rely on standard sqlnullable types
-	u := account.Model{}
+	a := account.Model{}
 	dproc := util.DateProcessor{}
-	err = rows.Scan(util.AugmentRefList(&dproc, u.ToRefList())...)
+	err := row.Scan(util.AugmentRefList(&dproc, a.ToRefList())...)
 	if err != nil {
 		return nil, err
 	}
@@ -53,12 +47,12 @@ func (r *Repository) Get(ctx context.Context, email string, password string) (*a
 		return nil, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(a.Password), []byte(password))
 	if err != nil {
 		return nil, err
 	}
 
-	return &u, nil
+	return &a, nil
 }
 
 // Update attempts to update a single row in the account table
@@ -74,21 +68,14 @@ func (r *Repository) Update(ctx context.Context, account *account.Model) error {
 
 // Create a account
 func (r *Repository) Create(ctx context.Context, a *account.Model) error {
-	conn, err := r.db.Conn(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(a.Password), 12)
 	if err != nil {
 		log.Printf("Unable to hash password: %s", err)
+		return err
 	}
 
-	rows := conn.QueryRowContext(ctx, "INSERT INTO account (`Email`, `Password`) VALUES ( ?, ? )", &a.Email, &hashedPassword)
-
-	err = rows.Scan()
-	if err != nil && err != sql.ErrNoRows {
+	_, err = r.db.ExecContext(ctx, "INSERT INTO account (`Email`, `Password`) VALUES ( ?, ? )", &a.Email, &hashedPassword)
+	if err != nil {
 		return err
 	}
 
@@ -97,14 +84,7 @@ func (r *Repository) Create(ctx context.Context, a *account.Model) error {
 
 // Delete a account
 func (r *Repository) Delete(ctx context.Context, accountID string) error {
-	conn, err := r.db.Conn(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	rows := conn.QueryRowContext(ctx, "Update account SET DateDeleted=NOW() WHERE `AccountID`=?;", accountID)
-	err = rows.Scan()
+	_, err := r.db.ExecContext(ctx, "Update account SET DateDeleted=NOW() WHERE `AccountID`=?;", accountID)
 	if err != nil {
 		return err
 	}

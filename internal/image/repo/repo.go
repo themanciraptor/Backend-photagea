@@ -29,37 +29,15 @@ func Initialize(db *sql.DB) Interface {
 
 // Create a image
 func (r *Repository) Create(ctx context.Context, a *image.Model) error {
-	conn, err := r.db.Conn(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
+	_, err := r.db.ExecContext(ctx, "INSERT INTO image (`AccountID`, `URL`) VALUES ( ?, ?)", a.ToRefList()[1:3]...)
 
-	rows := conn.QueryRowContext(ctx, "INSERT INTO image (`AccountID`, `URL`) VALUES ( ?, ?)", a.ToRefList()[1:3]...)
-
-	err = rows.Scan()
-	if err != nil && err != sql.ErrNoRows {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // Delete a image
 func (r *Repository) Delete(ctx context.Context, accountID string) error {
-	conn, err := r.db.Conn(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
-	rows := conn.QueryRowContext(ctx, "Update image SET DateDeleted=NOW() WHERE `accountID`=?;", accountID)
-	err = rows.Scan()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	_, err := r.db.ExecContext(ctx, "Update image SET DateDeleted=NOW() WHERE `accountID`=?;", accountID)
+	return err
 }
 
 // List returns a list of images for the account

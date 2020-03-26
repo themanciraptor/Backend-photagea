@@ -40,13 +40,14 @@ func (u *UserAPI) Get(w http.ResponseWriter, r *http.Request) {
 
 	accountID, err := u.accountService.Verify(r)
 	if err != nil {
-		log.Printf("Authentication failure: %s", err)
+		log.Println("Authentication failure: ", err)
 		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	user, err := u.userService.Get(r.Context(), accountID)
 	if err != nil {
-		log.Printf("Unable to find user: %d", accountID)
+		log.Println("Unable to find user for account: ", accountID)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -101,18 +102,19 @@ func (u *UserAPI) Update(w http.ResponseWriter, r *http.Request) {
 
 	accountID, err := u.accountService.Verify(r)
 	if err != nil {
-		log.Printf("A failed attemp at signing in was made: %s", err)
+		log.Println("A failed attemp at signing in was made: ", err)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	err = d.Decode(&c)
 	if err != nil {
-		log.Printf("Unable to read request body: %s", err)
+		log.Println("Unable to read request body: ", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
+	// TODO: this isn't technically always a 500
 	err = u.userService.Update(r.Context(), accountID, c.Alias, c.FirstName, c.LastName)
 	if err != nil {
 		log.Printf("Unable to update user for account %d: %s", accountID, err)

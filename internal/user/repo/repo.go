@@ -28,18 +28,12 @@ func Initialize(db *sql.DB) Interface {
 
 // Get gets a single user
 func (r *Repository) Get(ctx context.Context, AccountID int64) (*user.Model, error) {
-	conn, err := r.db.Conn(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	rows := conn.QueryRowContext(ctx, "SELECT * FROM User WHERE `AccountID`=?;", AccountID)
+	rows := r.db.QueryRowContext(ctx, "SELECT * FROM User WHERE `AccountID`=?;", AccountID)
 
 	// TODO: REMOVE date processor, and rely on standard sqlnullable types
 	u := user.Model{}
 	dproc := util.DateProcessor{}
-	err = rows.Scan(util.AugmentRefList(&dproc, u.ToRefList())...)
+	err := rows.Scan(util.AugmentRefList(&dproc, u.ToRefList())...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,35 +61,14 @@ func (r *Repository) Update(ctx context.Context, User *user.Model) error {
 
 // Create a user
 func (r *Repository) Create(ctx context.Context, User *user.Model) error {
-	conn, err := r.db.Conn(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
+	_, err := r.db.ExecContext(ctx, "INSERT INTO User (`Alias`, `FirstName`, `LastName`, `AccountID`) VALUES ( ?, ?, ?, ?)", User.ToRefList()[1:5]...)
 
-	rows := conn.QueryRowContext(ctx, "INSERT INTO User (`Alias`, `FirstName`, `LastName`, `AccountID`) VALUES ( ?, ?, ?, ?)", User.ToRefList()[1:5]...)
-
-	err = rows.Scan()
-	if err != nil && err != sql.ErrNoRows {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // Delete a user
 func (r *Repository) Delete(ctx context.Context, AccountID string) error {
-	conn, err := r.db.Conn(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
+	_, err := r.db.ExecContext(ctx, "Update User SET DateDeleted=NOW() WHERE `AccountID`=?;", AccountID)
 
-	rows := conn.QueryRowContext(ctx, "Update User SET DateDeleted=NOW() WHERE `AccountID`=?;", AccountID)
-	err = rows.Scan()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }

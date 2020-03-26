@@ -15,7 +15,7 @@ import (
 // Interface is the interface for user repository interactions
 type Interface interface {
 	Get(ctx context.Context, accountID int64, imageDataID int64) (*imagedata.Model, error)
-	Upload(ctx context.Context, i *imagedata.Model) error
+	Upload(ctx context.Context, i *imagedata.Model) (sql.Result, error)
 	Delete(ctx context.Context, imageDataID string) error
 }
 
@@ -59,25 +59,13 @@ func (r *Repository) Get(ctx context.Context, accountID int64, imageDataID int64
 }
 
 // Upload saves an image to the server
-func (r *Repository) Upload(ctx context.Context, i *imagedata.Model) error {
-	_, err := r.db.ExecContext(ctx, "INSERT INTO imagedata (`AccountID`, `mimetype`) VALUES (?, ?)", i.AccountID, i.MimeType)
-
-	return err
+func (r *Repository) Upload(ctx context.Context, i *imagedata.Model) (sql.Result, error) {
+	return r.db.ExecContext(ctx, "INSERT INTO imagedata (`AccountID`, `mimetype`) VALUES (?, ?)", i.AccountID, i.MimeType)
 }
 
 // Delete an image
 func (r *Repository) Delete(ctx context.Context, imageDataID string) error {
-	conn, err := r.db.Conn(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
+	_, err := r.db.ExecContext(ctx, "UPDATE imagedata SET DateDeleted=NOW() WHERE `ImageDataID`=?;", imageDataID)
 
-	rows := conn.QueryRowContext(ctx, "UPDATE imagedata SET DateDeleted=NOW() WHERE `ImageDataID`=?;", imageDataID)
-	err = rows.Scan()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
