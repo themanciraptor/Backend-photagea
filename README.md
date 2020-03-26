@@ -12,8 +12,7 @@ Install go: https://golang.org/doc/install
 - Set the root password, create at least one additional user: dev,
 password: developmentpassword. Or edit main.go:29 for your own custom
 account.
-- I recommend installing mysql workbench and using it for all
-developer-database interactions.
+- I recommend installing mysql workbench and using it for all developer-database interactions.
 
 ## 2. Import Development database
 From mysql workbench:
@@ -34,4 +33,3 @@ From mysql workbench:
 }`
 
 - The authentication header on all requests should be set to "Bearer \<authentication token>"
-
