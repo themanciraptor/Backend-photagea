@@ -13,6 +13,7 @@ import (
 type Interface interface {
 	SignIn(http.ResponseWriter, *http.Request)
 	Register(http.ResponseWriter, *http.Request)
+	Refresh(http.ResponseWriter, *http.Request)
 }
 
 // AccountAPI is the API for account related requests
@@ -74,4 +75,17 @@ func (a *AccountAPI) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
+}
+
+// Refresh provides a fresh token
+func (a *AccountAPI) Refresh(w http.ResponseWriter, r *http.Request) {
+	j, err := a.accountService.RefreshToken(r)
+	if err != nil {
+		log.Printf("Authentication failure: %s", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	io.WriteString(w, j)
 }
