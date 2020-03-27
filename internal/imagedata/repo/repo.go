@@ -15,7 +15,7 @@ import (
 // Interface is the interface for user repository interactions
 type Interface interface {
 	Get(ctx context.Context, accountID int64, imageDataID int64) (*imagedata.Model, error)
-	Upload(ctx context.Context, i *imagedata.Model) (sql.Result, error)
+	Upload(ctx context.Context, i *imagedata.Model) (string, error)
 	Delete(ctx context.Context, imageDataID string) error
 }
 
@@ -30,6 +30,11 @@ func Initialize(db *sql.DB) Interface {
 }
 
 const filepath = "images/%d/%d"
+
+// TODO: this should either be a constant set during build, accountid should
+// be hashed and included in the url, and then retrieval is decoupled from
+// authentication token. Permissions should be implemented separately
+const urlpath = "127.0.0.1:8001/images/get?id=%d"
 
 // Get gets a single imagedata
 func (r *Repository) Get(ctx context.Context, accountID int64, imageDataID int64) (*imagedata.Model, error) {
@@ -56,8 +61,20 @@ func (r *Repository) Get(ctx context.Context, accountID int64, imageDataID int64
 }
 
 // Upload saves an image to the server
-func (r *Repository) Upload(ctx context.Context, i *imagedata.Model) (sql.Result, error) {
-	return r.db.ExecContext(ctx, "INSERT INTO imagedata (`AccountID`, `mimetype`) VALUES (?, ?)", i.AccountID, i.MimeType)
+func (r *Repository) Upload(ctx context.Context, i *imagedata.Model) (string, error) {
+	result, err := r.db.ExecContext(ctx, "INSERT INTO imagedata (`AccountID`, `mimetype`) VALUES (?, ?)", i.AccountID, i.MimeType)
+	if err != nil {
+		return "", err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return "", err
+	}
+
+	ioutil.WriteFile(fmt.Sprintf(filepath, i.AccountID, id), i.ImageData, 0)
+
+	return fmt.Sprintf(urlpath, id), nil
 }
 
 // Delete an image

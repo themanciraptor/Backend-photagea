@@ -11,7 +11,7 @@ import (
 type Interface interface {
 	Get(ctx context.Context, accountID int64, imageDataID int64) (*imagedata.Model, error)
 	// Delete()
-	// Upload()
+	Upload(ctx context.Context, accountID int64, mimetype string, imageData []byte) (string, error)
 }
 
 // Service is the image service implementation
@@ -27,4 +27,13 @@ func Initialize(r imagedatarepo.Interface) Interface {
 // Get an image
 func (s *Service) Get(ctx context.Context, accountID int64, imageDataID int64) (*imagedata.Model, error) {
 	return s.repo.Get(ctx, accountID, imageDataID)
+}
+
+// Upload a single image, return the serving url
+func (s *Service) Upload(ctx context.Context, accountID int64, mimetype string, imageData []byte) (string, error) {
+	return s.repo.Upload(ctx, &imagedata.Model{
+		AccountID: accountID,
+		MimeType:  mimetype,
+		ImageData: imageData,
+	})
 }

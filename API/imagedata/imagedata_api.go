@@ -1,6 +1,8 @@
 package imagedataapi
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -17,16 +19,16 @@ type Interface interface {
 
 // imageDataAPI is the API for user related requests
 type imageDataAPI struct {
-	imagedataService imagedataservice.Interface
+	imageDataService imagedataservice.Interface
 	accountService   accountservice.Interface
 }
 
 // Initialize a new instance of the user API
 func Initialize(i imagedataservice.Interface, a accountservice.Interface) Interface {
-	return &imageDataAPI{imagedataService: i, accountService: a}
+	return &imageDataAPI{imageDataService: i, accountService: a}
 }
 
-func (i imageDataAPI) Get(w http.ResponseWriter, r *http.Request) {
+func (i *imageDataAPI) Get(w http.ResponseWriter, r *http.Request) {
 	accountID, err := i.accountService.Verify(r)
 	if err != nil {
 		log.Printf("Authentication failed: %s", err)
@@ -43,7 +45,7 @@ func (i imageDataAPI) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := i.imagedataService.Get(r.Context(), accountID, int64(idid))
+	id, err := i.imageDataService.Get(r.Context(), accountID, int64(idid))
 	if err != nil {
 		log.Println("Failed to retrieve image with id: ", idid)
 		log.Println("Error: ", err)
@@ -55,6 +57,35 @@ func (i imageDataAPI) Get(w http.ResponseWriter, r *http.Request) {
 	w.Write(id.ImageData)
 }
 
-func (i imageDataAPI) Upload(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+type uploadResponse struct {
+	URL string
+}
+
+func (i *imageDataAPI) Upload(w http.ResponseWriter, r *http.Request) {
+	e := json.NewEncoder(w)
+
+	accountID, err := i.accountService.Verify(r)
+	if err != nil {
+		log.Printf("Authentication failed: %s", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	mimetype := r.Header.Get("Content-Type")
+
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Println("Unable to read and store image")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	url, err := i.imageDataService.Upload(r.Context(), accountID, mimetype, data)
+	if err != nil {
+		log.Println("Unable to save image: ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	e.Encode(&uploadResponse{URL: url})
 }
