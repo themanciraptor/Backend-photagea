@@ -18,6 +18,7 @@ type Interface interface {
 	Verify(r *http.Request) (int64, error)
 	Create(ctx context.Context, Email string, Password string) error
 	Update(ctx context.Context, accountID int64, Email string, Password string) error
+	RefreshToken(r *http.Request) (string, error)
 }
 
 // Service implements account service interface
@@ -59,8 +60,34 @@ func (a *Service) SignIn(ctx context.Context, email string, password string) (st
 		return "", err
 	}
 
+	return genToken(acc.AccountID)
+}
+
+// Verify checks that a token is valid and returns the accoundID attached to the jwt
+func (a *Service) Verify(r *http.Request) (int64, error) {
+	j := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+	claims, err := getClaims(j)
+	if err != nil {
+		return 0, err
+	}
+
+	return claims.AccountID, nil
+}
+
+// RefreshToken issues a fresh token
+func (a *Service) RefreshToken(r *http.Request) (string, error) {
+	j := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+	claims, err := getClaims(j)
+	if err != nil {
+		return "", err
+	}
+
+	return genToken(claims.AccountID)
+}
+
+func genToken(accountID int64) (string, error) {
 	claims := accountClaims{
-		AccountID: acc.AccountID,
+		AccountID: accountID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Unix() + 1500,
 			Issuer:    "photagea.com",
@@ -77,28 +104,26 @@ func (a *Service) SignIn(ctx context.Context, email string, password string) (st
 	return signedToken, nil
 }
 
-// Verify checks that a token is valid and returns the accoundID attached to the jwt
-func (a *Service) Verify(r *http.Request) (int64, error) {
-	j := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
-	token, err := jwt.ParseWithClaims(
-		j,
+func getClaims(token string) (*accountClaims, error) {
+	t, err := jwt.ParseWithClaims(
+		token,
 		&accountClaims{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte("secureSecretText"), nil
 		},
 	)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	claims, ok := token.Claims.(*accountClaims)
+	claims, ok := t.Claims.(*accountClaims)
 	if !ok {
-		return 0, errors.New("Couldn't parse claims")
+		return nil, errors.New("Couldn't parse claims")
 	}
 
 	if claims.ExpiresAt < time.Now().UTC().Unix() {
-		return 0, errors.New("JWT is expired")
+		return nil, errors.New("JWT is expired")
 	}
 
-	return claims.AccountID, nil
+	return claims, nil
 }
