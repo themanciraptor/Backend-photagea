@@ -47,7 +47,7 @@ func (a *AccountAPI) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	j, err := a.accountService.SignIn(r.Context(), c.Email, c.Password)
 	if err != nil {
-		log.Printf("Unable to sign in request body: %s", err)
+		log.Printf("Unable to read sign in request body: %s", err)
 		w.WriteHeader(http.StatusUnauthorized)
 	}
 
@@ -64,7 +64,7 @@ func (a *AccountAPI) Register(w http.ResponseWriter, r *http.Request) {
 
 	err := d.Decode(&c)
 	if err != nil {
-		log.Printf("Unable to read request body: %s", err)
+		log.Printf("Unable to read Register request body: %s", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
